@@ -1,4 +1,5 @@
 version: '3.8'
+
 volumes:
   db_storage:
   n8n_storage:
@@ -25,16 +26,8 @@ x-shared: &shared
     - EXECUTIONS_MODE=queue
     - QUEUE_BULL_REDIS_HOST=redis
     - QUEUE_HEALTH_CHECK_ACTIVE=true
-  links:
-    - postgres
-    - redis
   volumes:
-      - n8n_storage:/home/node/.n8n
-  services:
-  n8n:
-    depends_on:
-      - postgres
-      - redis
+    - n8n_storage:/home/node/.n8n
 
 services:
   postgres:
@@ -56,6 +49,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - network_public
 
   redis:
     image: redis:7-alpine
@@ -67,13 +62,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - network_public
 
   n8n:
     <<: *shared
     image: docker.n8n.io/n8nio/n8n
     command: start
+    depends_on:
+      - postgres
+      - redis
     ports:
-      - "127.0.0.1:5678:5678"
+      - "5678:5678"
     networks:
       - network_public
     labels:
