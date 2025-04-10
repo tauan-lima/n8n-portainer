@@ -73,17 +73,26 @@ services:
     command: start
     ports:
       - "127.0.0.1:5678:5678"
+    networks:
+      - network_public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.tauanlima.com.br`)"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
 
-  n8n-worker-1:
-    <<: *shared
-    image: n8nio/n8n
-    command: worker
-    depends_on:
-      - n8n
+  evolution:
+    image: evolution/api
+    restart: always
+    networks:
+      - network_public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.evolution.rule=Host(`evolution.tauanlima.com.br`)"
+      - "traefik.http.routers.evolution.entrypoints=websecure"
+      - "traefik.http.services.evolution.loadbalancer.server.port=3000"
 
-  n8n-worker-2:
-    <<: *shared
-    image: n8nio/n8n
-    command: worker
-    depends_on:
-      - n8n
+networks:
+  network_public:
+    external: true
+    name: network_public
